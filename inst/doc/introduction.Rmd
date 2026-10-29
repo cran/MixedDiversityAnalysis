@@ -1,0 +1,291 @@
+
+---
+title: "Mixed-Trait Dissimilarity Analysis and Visualization"
+author: "Santosha Rathod, Prabhat Kumar, A. K. Jukanti, Radha Upadhyay, Prashantkumar S. Hanjagi, Basavaraj P. S., R. N. Singh, and Anil Kumar"
+date: "2026"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Mixed-Trait Dissimilarity Analysis and Visualization}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# 1. Introduction
+
+Crop germplasm collections contain substantial variation in morphological, agronomic, and other phenotypic characteristics. Characterizing this variation is important for understanding relationships among accessions, identifying diversity patterns, and supporting crop improvement research. However, germplasm characterization frequently involves a combination of quantitative, qualitative, binary, and ordinal traits, making the assessment of diversity using a single conventional distance measure challenging.
+
+The `MixedDiversityAnalysis` package provides methods for analysing and visualizing diversity in datasets containing mixed types of traits. Its functionality includes mixed-trait dissimilarity analysis, hierarchical clustering using supported linkage methods, Principal Coordinates Analysis (PCoA), cluster evaluation, trait contribution analysis, and graphical visualization.
+
+The general framework for comparing observations with different attribute types draws on the similarity coefficient introduced by Gower (1971). The specific calculations and supported analytical options depend on the methods implemented in the package. Further methodological background and related applications are discussed by Jukanti et al. (2026).
+
+This vignette introduces the main analytical concepts and outlines a workflow for mixed-trait diversity analysis in crop germplasm.
+
+# 2. Types of Traits
+
+Germplasm characterization commonly involves several types of traits. Appropriate identification and coding of these traits are important for obtaining meaningful dissimilarity estimates.
+
+- **Quantitative traits:** Numerical measurements, such as plant height, seed weight, and days to flowering.
+- **Qualitative traits:** Categorical characteristics without an inherent order, such as seed colour, growth habit, and flower colour.
+- **Binary traits:** Characteristics represented by two categories, such as the presence or absence of a particular feature.
+- **Ordinal traits:** Categorical characteristics with a meaningful order, such as low, medium, and high disease response.
+
+Before analysis, users should ensure that the data are correctly coded and that each trait is represented in a form compatible with the selected package function. Trait definitions, measurement units, category labels, and missing-value conventions should be consistent across accessions.
+
+# 3. Mixed-Trait Dissimilarity
+
+Mixed-trait dissimilarity quantifies the differences between pairs of accessions using their observed characteristics. Unlike measures designed for a single data type, a mixed-trait approach can accommodate different types of attributes within the same dataset, provided that the calculation appropriately handles each trait type.
+
+Gower (1971) introduced a general similarity coefficient for comparing observations described by attributes of different types. When a dissimilarity measure is defined as the complement of a similarity coefficient, the relationship can be written as
+
+$$
+d_{ij} = 1 - S_{ij},
+$$
+
+where \(S_{ij}\) is the similarity between accessions \(i\) and \(j\), and \(d_{ij}\) is their corresponding dissimilarity.
+
+The resulting pairwise dissimilarities can be used as input for clustering and ordination. The precise calculation depends on the implemented method, including how individual trait types, missing observations, and any trait-specific weights are handled.
+
+Users should consult the relevant function documentation to confirm the calculation and data requirements used by `MixedDiversityAnalysis`.
+
+# 4. Hierarchical Clustering
+
+Hierarchical clustering organizes accessions into a nested structure based on their pairwise dissimilarities. The resulting dendrogram provides a visual representation of the relationships among accessions and can help reveal groups within a germplasm collection.
+
+Different linkage methods define the distance between clusters differently and may therefore produce different dendrograms. Common approaches include:
+
+- **Single linkage:** Uses the minimum pairwise distance between members of two clusters.
+- **Complete linkage:** Uses the maximum pairwise distance between members of two clusters.
+- **Average linkage:** Uses the average pairwise distance between members of two clusters.
+- **Ward's method:** Selects merges according to an increase in within-cluster variation and requires particular attention to the properties of the input dissimilarities.
+
+The appropriate linkage method depends on the analytical objective and the properties of the dissimilarity measure. Users should select only methods supported by the package and ensure that the chosen method is compatible with the input data.
+
+# 5. Principal Coordinates Analysis (PCoA)
+
+Principal Coordinates Analysis (PCoA) is an ordination technique that represents relationships among observations in a lower-dimensional coordinate space derived from a dissimilarity matrix.
+
+In germplasm studies, PCoA can help visualize the distribution of accessions, explore potential groupings, and identify broad patterns of diversity. Accessions that are positioned close together in an ordination plot generally have smaller dissimilarities than accessions positioned farther apart, subject to the properties of the input measure and the ordination.
+
+The interpretation of an ordination should consider the proportion of variation represented by the displayed axes and any limitations associated with the dissimilarity matrix. PCoA plots are most informative when interpreted alongside the original data, pairwise dissimilarities, and clustering results.
+
+# 6. Cluster Evaluation
+
+Cluster evaluation is used to examine the quality and separation of groups produced by a clustering procedure. The appropriate evaluation criterion depends on the dissimilarity measure, clustering method, number of clusters, and objectives of the study.
+
+Comparing alternative cluster solutions can help users assess whether the observed grouping patterns are stable and interpretable. Where appropriate, evaluation results should be considered together with dendrograms, ordination plots, and knowledge of the biological characteristics of the accessions.
+
+The evaluation procedures available in `MixedDiversityAnalysis` should be interpreted according to their documented definitions and assumptions.
+
+# 7. Trait Contribution Analysis
+
+Trait contribution analysis can help identify characteristics associated with observed differences among accessions. In crop germplasm research, this information may help researchers understand which traits are informative for distinguishing accessions and may guide subsequent characterization or breeding studies.
+
+The meaning of a trait contribution depends on the calculation used. Contributions should therefore be interpreted according to the package function's definition, rather than assumed to represent a universal measure of biological importance or causal influence.
+
+Trait contribution results can complement dissimilarity analysis, clustering, and ordination by providing additional insight into the characteristics associated with observed diversity.
+
+# 8. Example Workflow
+
+This example demonstrates a complete workflow for analysing mixed-trait diversity in crop germplasm using the exported functions in `MixedDiversityAnalysis`.
+
+## 8.1 Load the package
+
+```{r load-package}
+library(MixedDiversityAnalysis)
+```
+
+## 8.2 Prepare an example dataset
+
+The example dataset contains quantitative, qualitative, ordinal, and binary traits for eight illustrative accessions.
+
+```{r example-data}
+trait_data <- data.frame(
+  Accession = paste0("G", 1:8),
+  PlantHeight = c(85, 92, 78, 101, 88, 95, 82, 99),
+  SeedWeight = c(24.5, 27.1, 22.8, 29.3, 25.6, 28.0, 23.9, 30.1),
+  SeedColour = c(
+    "Red", "Brown", "Red", "Black",
+    "Brown", "Black", "Red", "Brown"
+  ),
+  DiseaseResistance = ordered(
+    c(
+      "High", "Medium", "Low", "High",
+      "Medium", "High", "Low", "Medium"
+    ),
+    levels = c("Low", "Medium", "High")
+  ),
+  Lodging = c(
+    "Absent", "Present", "Absent", "Present",
+    "Absent", "Present", "Absent", "Present"
+  ),
+  stringsAsFactors = FALSE
+)
+
+trait_data
+```
+
+Keep accession identifiers separate from the trait columns and assign them as row names so they can be used in the analysis and plots.
+
+```{r prepare-data}
+accession_ids <- trait_data$Accession
+
+traits <- trait_data[, -1, drop = FALSE]
+rownames(traits) <- accession_ids
+
+trait_types <- c(
+  "quantitative",
+  "quantitative",
+  "qualitative",
+  "ordinal",
+  "binary"
+)
+
+str(traits)
+trait_types
+```
+
+The `trait_types` vector must contain one entry for each trait column, in the same order as the columns in `traits`. Ordinal traits must be ordered factors, and each binary trait must have exactly two observed values.
+
+## 8.3 Calculate mixed-trait dissimilarities
+
+Use `mixed_distance()` to calculate pairwise dissimilarities among the accessions.
+
+```{r distance-analysis}
+dissimilarity <- mixed_distance(
+  data = traits,
+  types = trait_types
+)
+
+dissimilarity$dissimilarity
+```
+
+The returned object contains the dissimilarity matrix, the prepared trait data, the trait types, and the method identifier.
+
+## 8.4 Perform hierarchical clustering
+
+Use `mixed_cluster()` to group accessions based on their dissimilarities. The following example requests three clusters using average linkage.
+
+```{r hierarchical-clustering}
+clustering <- mixed_cluster(
+  distance_object = dissimilarity,
+  k = 3,
+  method = "average"
+)
+
+clustering$clusters
+clustering$sizes
+clustering$silhouette_mean
+```
+
+The selected number of clusters and linkage method can affect the resulting groups. The mean silhouette width provides a summary of cluster separation.
+
+## 8.5 Conduct Principal Coordinates Analysis
+
+Use `mixed_pcoa()` to represent the dissimilarity relationships in two dimensions.
+
+```{r pcoa-analysis}
+ordination <- mixed_pcoa(
+  distance_object = dissimilarity,
+  dimensions = 2
+)
+
+ordination$coordinates
+ordination$percent_explained[1:2]
+```
+
+The coordinates can be used to explore relationships among accessions. The percentage of positive eigenvalues explained by each axis is provided in `percent_explained`.
+
+## 8.6 Evaluate clusters and trait separation
+
+The clustering function calculates silhouette information. The `mixed_diversity()` function assesses how strongly individual traits are associated with the resulting cluster structure.
+
+```{r evaluation-analysis}
+cluster_results <- clustering$silhouette_mean
+
+trait_results <- mixed_diversity(
+  data = traits,
+  types = trait_types,
+  clusters = clustering$clusters
+)
+
+cluster_results
+trait_results
+```
+
+The `separation` scores help identify traits that distinguish the observed clusters. They are descriptive measures and should not be interpreted as proof of causation or as direct estimates of genetic variance.
+
+## 8.7 Visualize the results
+
+The package provides visualization options for dendrograms, silhouette plots, PCoA results, and trait separation scores.
+
+```{r dendrogram-plot, fig.width=8, fig.height=6}
+mixed_visualize(
+  object = clustering,
+  type = "dendrogram",
+  main = "Hierarchical Clustering of Crop Accessions"
+)
+```
+
+```{r silhouette-plot, fig.width=8, fig.height=6}
+mixed_visualize(
+  object = clustering,
+  type = "silhouette",
+  main = "Cluster Silhouette Analysis"
+)
+```
+
+```{r pcoa-plot, fig.width=8, fig.height=6}
+mixed_visualize(
+  object = ordination,
+  type = "pcoa",
+  clusters = clustering$clusters,
+  labels = accession_ids,
+  main = "PCoA of Mixed-Trait Dissimilarities"
+)
+```
+
+```{r trait-plot, fig.width=8, fig.height=6}
+mixed_visualize(
+  object = trait_results,
+  type = "trait",
+  main = "Trait Separation Across Clusters"
+)
+```
+
+These plots provide complementary views of the clustering structure, accession relationships, and traits associated with cluster separation.
+
+The example dataset is illustrative. For real germplasm studies, users should check trait coding, missing observations, cluster stability, and the biological interpretation of the results.
+
+# 9. Applications
+
+Mixed-trait diversity analysis can support a range of crop germplasm research activities, including:
+
+- Assessing diversity among accessions characterized by different types of traits.
+- Characterizing and comparing crop genetic resources.
+- Exploring relationships among genotypes using dissimilarity-based methods.
+- Investigating grouping patterns through hierarchical clustering.
+- Visualizing accession relationships using ordination.
+- Identifying traits that help distinguish accessions, according to the implemented contribution measure.
+- Supporting the planning of further characterization and crop improvement research.
+
+These applications depend on the quality of the input data, the suitability of the selected methods, and the biological context of the study.
+
+# 10. Conclusion
+
+`MixedDiversityAnalysis` provides a framework for investigating crop germplasm diversity using datasets that contain multiple types of traits. Its analytical workflow encompasses mixed-trait dissimilarity, hierarchical clustering, PCoA, cluster evaluation, trait contribution analysis, and visualization.
+
+Appropriate data preparation, method selection, and interpretation are essential for meaningful results. Users should consult the package's function documentation to verify supported options and apply the methods in accordance with their assumptions.
+
+# 11. References
+
+Gower, J. C. (1971). A general coefficient of similarity and some of its properties. *Biometrics*, 27(4), 857–871. <https://doi.org/10.2307/2528823>
+
+Jukanti, A. K., et al. (2026). **[Insert the exact article title and complete author list.]** *[Journal name, volume, and page range or article number].* <https://doi.org/10.1007/s44187-025-00715-w>

@@ -1,0 +1,25 @@
+Package: MixedDiversityAnalysis
+Title: Analysis and Visualization of Mixed-Trait Dissimilarity
+Version: 0.1.0
+Authors@R: c(person("Santosha", "Rathod", role = "aut"), person("Prabhat", "Kumar", email = "prabhatkkv@gmail.com", role = c("aut", "cre")), person("A. K.", "Jukanti", role = "aut"), person("Radha", "Upadhyay", role = "aut"), person("Prashantkumar S", "Hanjagi", role = "aut"), person("Basavaraj", "PS", role = "aut"), person("R. N.", "Singh", role = "aut"), person("Anil", "Kumar", role = "aut"))
+Description: Provides methods for analysing datasets containing quantitative, qualitative, binary, and ordinal traits. Computes mixed-trait dissimilarities and performs hierarchical clustering using multiple linkage methods. Supports principal coordinates analysis (PCoA), cluster evaluation, trait contribution analysis, and graphical visualization. The package facilitates mixed-trait diversity assessment and characterization of crop germplasm. For more detail see Gower (1971) <doi:10.2307/2528823> and Jukanti et al. (2026) <doi:10.1007/s44187-025-00715-w>.
+License: GPL (>= 3)
+Encoding: UTF-8
+Suggests: knitr, rmarkdown, testthat (>= 3.0.0)
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+Imports: cluster
+Config/roxygen2/version: 8.1.0
+NeedsCompilation: no
+Packaged: 2026-10-19 09:00:18 UTC; Dr. Prabhat
+Author: Santosha Rathod [aut],
+  Prabhat Kumar [aut, cre],
+  A. K. Jukanti [aut],
+  Radha Upadhyay [aut],
+  Prashantkumar S Hanjagi [aut],
+  Basavaraj PS [aut],
+  R. N. Singh [aut],
+  Anil Kumar [aut]
+Maintainer: Prabhat Kumar <prabhatkkv@gmail.com>
+Repository: CRAN
+Date/Publication: 2026-10-29 11:10:07 UTC
